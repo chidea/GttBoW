@@ -17,23 +17,11 @@ func main () {
       os.Args[i] = strings.Replace(a, " ", "\\ ", -1)
     }
   }
-  /*attr := &os.ProcAttr { Dir : "", Env: nil}
-  p, e := os.StartProcess("powershell", []string{"-Command", "ls"}, attr)
-  if e != nil {
-    fmt.Println(e)
-  }else{
-    p.Wait()
-  }*/
   p := exec.Command("bash.exe", "-c", "git "+ strings.Join(os.Args[1:], " "))
   p.Stdin = os.Stdin
   p.Stdout = os.Stdout
+  p.Stderr = os.Stderr
   e := p.Run()
-  if e != nil {
-    fmt.Println(e)
-    return
-  }
-  //time.Sleep(1 * time.Second)
-  //e = p.Wait()
   if e != nil {
     fmt.Println(e)
   }
