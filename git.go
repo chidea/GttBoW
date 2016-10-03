@@ -11,12 +11,20 @@ import (
 
 
 func main () {
-  fmt.Println("calling git with", os.Args)
+  fmt.Println("took", os.Args)
   for i, a := range os.Args{
+    if i == 0 { continue }
     if strings.Contains(a, " ") {
       os.Args[i] = strings.Replace(a, " ", "\\ ", -1)
     }
+    if strings.Contains(a, "\\") {
+      if a[1:3] == ":\\" {
+        a = "/mnt/c/" + a[3:]
+      }
+      os.Args[i] = strings.Replace(a, "\\", "/", -1)
+    }
   }
+  fmt.Println("call", os.Args)
   p := exec.Command("bash.exe", "-c", "git "+ strings.Join(os.Args[1:], " "))
   p.Stdin = os.Stdin
   p.Stdout = os.Stdout
