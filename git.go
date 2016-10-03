@@ -12,6 +12,11 @@ import (
 
 func main () {
   fmt.Println("calling git with", os.Args)
+  for i, a := range os.Args{
+    if strings.Contains(a, " ") {
+      os.Args[i] = strings.Replace(a, " ", "\\ ", -1)
+    }
+  }
   /*attr := &os.ProcAttr { Dir : "", Env: nil}
   p, e := os.StartProcess("powershell", []string{"-Command", "ls"}, attr)
   if e != nil {
