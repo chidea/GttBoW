@@ -25,7 +25,7 @@ func main () {
     }
   }
   fmt.Println("call", os.Args)
-  p := exec.Command("bash.exe", "-c", "git "+ strings.Join(os.Args[1:], " "))
+  p := exec.Command("bash.exe", "-c", ". ~/.ssh/.ssh-agent.sh;git "+ strings.Join(os.Args[1:], " "))
   p.Stdin = os.Stdin
   p.Stdout = os.Stdout
   p.Stderr = os.Stderr
