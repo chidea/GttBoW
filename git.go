@@ -19,7 +19,7 @@ func main () {
     }
     if strings.Contains(a, "\\") {
       if a[1:3] == ":\\" {
-        a = "/mnt/c/" + a[3:]
+        a = "/mnt/" + strings.ToLower(string(a[0])) + "/" + a[3:]
       }
       os.Args[i] = strings.Replace(a, "\\", "/", -1)
     }
