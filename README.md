@@ -15,3 +15,4 @@ It lets you use the git installed on bash on windows as native windows git, with
  - Copy all `sbash.bat` file under `batch` directory to `%WINDIR%\system32\`.
  - Do the same with `git.bat` or other `.bat` files to use it like native windows binary.
  - Feel free to open `git.bat` and create link batch to any other bash binaries. It's clean short and easy.
+ - Check out `sabash.bat` if you're using `ssh-agent`.
