@@ -1,7 +1,7 @@
 @echo off
 
-echo %* | set /p=%* > c:\Temp\_tmpin
-echo ^>/mnt/c/Temp/_tmpout 2^>/mnt/c/Temp/_tmperr >> c:\Temp\_tmpin
+echo | set /p=%* > c:\Temp\_tmpin
+echo | set /p=">/mnt/c/Temp/_tmpout 2>/mnt/c/Temp/_tmperr" >> c:\Temp\_tmpin
 bash /mnt/c/Temp/_tmpin
 del c:\Temp\_tmpin
 
