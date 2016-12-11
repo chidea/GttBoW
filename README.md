@@ -28,10 +28,10 @@ It lets you use the git installed on bash on windows as native windows git, with
 
 # Testing
  - Git
-| Command | Works |
+|          Command           | Works |
 |:--------------------------:|:-----:|
-| clone to windows directory | x |
-| others | o |
+| clone to windows directory |   x   |
+| others                     |   o   |
  
  - Vundle on GVim on windows
 | Command | Works |
