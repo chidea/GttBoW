@@ -39,7 +39,7 @@ It lets you use the git installed on bash on windows as native windows git, with
 | Command | Works |
 |:--------------------------:|:-------:|
 | PluginInstall | o |
-| PluginSearch | o |
+| PluginSearch | x |
 
  - Go on windows
 
