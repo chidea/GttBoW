@@ -29,7 +29,7 @@ It lets you use the git installed on bash on windows as native windows git, with
 # Testing
  - Git
 | Command | Works |
-|:--------------------------:|:-------:|
+|:--------------------------:|:-----:|
 | clone to windows directory | x |
 | others | o |
  
