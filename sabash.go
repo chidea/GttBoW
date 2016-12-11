@@ -40,7 +40,7 @@ func main() {
 	inf.Close()
 	errf.Close()
 
-	cmd := exec.Command("bash", inf.Name()) //fmt.Sprintf("/mnt/c/%s/%s", dirpath, inf.Name())).Run()
+	cmd := exec.Command("bash", "-cur_console:p", inf.Name()) //fmt.Sprintf("/mnt/c/%s/%s", dirpath, inf.Name())).Run()
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
@@ -55,16 +55,16 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		return
 	}*/
-
-	if err = cmd.Start(); err != nil {
-		fmt.Println(err)
-	}
-
-	err = cmd.Wait()
-
+	err = cmd.Start()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
-		return
+		fmt.Println(err)
+	} else {
+		err = cmd.Wait()
+		if err != nil {
+			fmt.Println(err)
+			//fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+			//return
+		}
 	}
 	b, err := ioutil.ReadFile(errf.Name())
 	if err != nil {
