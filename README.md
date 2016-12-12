@@ -21,7 +21,7 @@ It lets you use the git installed on bash on windows as native windows git, with
  - Copy all `sbash.bat` file under `batch` directory to `%WINDIR%\system32\` or place it under directories listed in PATH environment variable.
  - Do the same with `git.bat` or other `.bat` files to use it like native windows binary.
  - Feel free to open `git.bat` and create link batch to any other bash binaries. It's clean short and easy.
- - Check out `sabash.bat` if you're using `ssh-agent`. Open a bash shell and `ssh-agent` in background will let you skip typing ssh passwords.
+ - Check out comment in `sbash.bat` for ssh-agent if you're using `ssh-agent`. Open a bash shell and `ssh-agent` in background will let you skip typing ssh passwords.
  - Commands like `ssh` without inline commands which waits for user input are available.
 
 # ETC.

@@ -1,10 +1,13 @@
 @echo off
 
-SET _ARGS=%*
-SET _ARGS=%_ARGS:C:\=/mnt/c/%
-SET _ARGS=%_ARGS:\=/%
+REM SET _ARGS=%*
+REM SET _ARGS=%_ARGS:C:\=/mnt/c/%
+REM SET _ARGS=%_ARGS:\=/%
 
-echo | set /p=%_ARGS% > c:\Temp\_tmpin
+REM uncomment bellow to use ssh-agent
+REM echo | set /p="if [[ $(pgrep ssh-agent) != '' ]]; then . ~/.ssh/ssh-agent.sh; fi;" > c:\Temp\_tmpin
+
+echo | set /p=%* > c:\Temp\_tmpin
 echo | set /p=" 2>/mnt/c/Temp/_tmperr" >> c:\Temp\_tmpin
 
 FOR /F "tokens=* USEBACKQ" %%F IN (`isconemu`) DO (
