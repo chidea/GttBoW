@@ -8,13 +8,14 @@ It lets you use the git installed on bash on windows as native windows git, with
   - Because it produces binary without installing entire visual studio monster.
 
 # Installation
- - Get `sbash.exe` by manual building with `go build sbash.exe`. If you use ssh-agent, consider using `sabash.go` and renaming its output as `sbash.exe`.
+ - Get `sbash.exe` by manual building with `go build sbash.exe normal.go`. If you are using ssh-agent, consider using  `go build sbash.go ssh-agent.go`. This lets you share ssh passwords from background bash terminal.
  - Move `sbash.exe` into `%WINDIR%\System32\` or `$env:WINDIR\System32\` or just any PATH environment variable directs.
  - Do the same with `batch/git.bat` file.
  - Now `git [command]` will work as native windows command.
+ - Do the same with other `.bat` files in `batch` directory to use it like native windows binary.
 
 # Simpler Batch Usage
- - Copy all `sbash.bat` file under `batch` directory to `%WINDIR%\system32\`.
+ - Copy all `sbash.bat` file under `batch` directory to `%WINDIR%\system32\` or place it under directories listed in PATH environment variable.
  - Do the same with `git.bat` or other `.bat` files to use it like native windows binary.
  - Feel free to open `git.bat` and create link batch to any other bash binaries. It's clean short and easy.
  - Check out `sabash.bat` if you're using `ssh-agent`. Open a bash shell and `ssh-agent` in background will let you skip typing ssh passwords.
@@ -47,4 +48,3 @@ It lets you use the git installed on bash on windows as native windows git, with
 |:--------------------------:|:-------:|
 | go get | x |
 | go install | ? |
-

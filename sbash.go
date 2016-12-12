@@ -32,7 +32,13 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		return
 	}
-	_, err = inf.WriteString(fmt.Sprintf("%s 1>&0 2>%s", strings.Join(os.Args[1:], " "), errf.Name()))
+	// drive root replacement
+	for i, a := range os.Args[1:] {
+		if strings.Index(a, ":\\") == 1 {
+			os.Args[i+1] = "/mnt/" + strings.ToLower(string(a[0])) + "/" + a[3:]
+		}
+	}
+	_, err = inf.WriteString(fmt.Sprintf(stdinopt+"%s 2>%s", strings.Join(os.Args[1:], " "), errf.Name()))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		return
@@ -40,7 +46,13 @@ func main() {
 	inf.Close()
 	errf.Close()
 
-	cmd := exec.Command("bash", "-cur_console:p", inf.Name()) //fmt.Sprintf("/mnt/c/%s/%s", dirpath, inf.Name())).Run()
+	execopt := []string{inf.Name()}
+	err = exec.Command("isconemu").Run()
+	if err == nil {
+		execopt = append(execopt, "-cur_console:p")
+	}
+
+	cmd := exec.Command("bash", execopt...) //fmt.Sprintf("/mnt/c/%s/%s", dirpath, inf.Name())).Run()
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
