@@ -14,6 +14,9 @@ It lets you use the git installed on bash on windows as native windows git, with
  - Now `git [command]` will work as native windows command.
  - Do the same with other `.bat` files in `batch` directory to use it like native windows binary.
 
+# Known issues
+ - Apostrophe brackets in raw command are not passed to golang program. `git commit -m "a b c"` will fail while `git commit -m "'a b c'"` works.
+
 # Simpler Batch Usage
  - Copy all `sbash.bat` file under `batch` directory to `%WINDIR%\system32\` or place it under directories listed in PATH environment variable.
  - Do the same with `git.bat` or other `.bat` files to use it like native windows binary.
