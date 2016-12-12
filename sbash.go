@@ -36,6 +36,7 @@ func main() {
 	for i, a := range os.Args[1:] {
 		if strings.Index(a, ":\\") == 1 {
 			os.Args[i+1] = "/mnt/" + strings.ToLower(string(a[0])) + "/" + a[3:]
+			os.Args[i+1] = strings.Replace(os.Args[i+1], "\\", "/", -1)
 		}
 	}
 	_, err = inf.WriteString(fmt.Sprintf(stdinopt+"%s 2>%s", strings.Join(os.Args[1:], " "), errf.Name()))
