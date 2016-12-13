@@ -1,2 +1,2 @@
 @echo off
-sbash wget %*
+bbash.bat wget %*

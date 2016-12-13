@@ -1,2 +1,2 @@
 @echo off
-sbash ssh %*
+bbash.bat ssh %*

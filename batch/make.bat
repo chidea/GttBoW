@@ -1,2 +1,2 @@
 @echo off
-sbash make %*
+bbash.bat make %*

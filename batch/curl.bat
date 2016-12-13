@@ -1,2 +1,2 @@
 @echo off
-sbash curl %*
+bbash.bat curl %*

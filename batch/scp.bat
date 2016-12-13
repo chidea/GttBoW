@@ -1,2 +1,2 @@
 @echo off
-sbash scp %*
+bbash.bat scp %*
