@@ -9,7 +9,11 @@ So you do use commands directly with any brackets you need to use as if it's an 
  - golang
   - Because it produces binary without installing entire visual studio monster.
 
-# Installation
+# Automatic Installation
+ Run `install.bat` as administrator privilege
+ It builds and installs as normal mode. You can use ssh-agent with simple modification in `install.bat`. Also, check the note below.
+
+# Manual Installation
  - Get `gbash.exe` by manual building with `go build gbash.go normal.go`.
   - If you are using ssh-agent, consider using  `go build sbash.go ssh-agent.go`. This lets you share ssh passwords from pre-opened background bash terminal. Check ssh-agent section for more information.
  - Move `gbash.exe` into `%WINDIR%\System32\`(cmd) or `$env:WINDIR\System32\`(powershell) or just under any directory which PATH environment variable directs.
