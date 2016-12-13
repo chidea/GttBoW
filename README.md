@@ -42,7 +42,7 @@ if [[ $AGENT_TEST = "" ]]; then ssh-add; fi
   - [x] git clone to windows directory and path
  - [x] GCC build test
  - [ ] Vundle on gvim on windows
-  - [ ] PluginInstall
+  - [x] PluginInstall
   - [ ] PluginSearch
  - [ ] Golang
   - [ ] git related e.g)`go get`
