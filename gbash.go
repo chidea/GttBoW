@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	//"path"
 	//"runtime"
-	"regexp"
+	//"regexp"
 	"strings"
 )
 
@@ -33,8 +33,12 @@ func initTempFiles() (inf *os.File, errf *os.File, err error) {
 		return
 	}
 
-	re := regexp.MustCompile("(['\"` ])([a-zA-Z]):\\\\")
-	tmpin = re.ReplaceAllString(tmpin, "${1}/mnt/${2}\\/")
+	if idx := strings.Index(tmpin, ":\\"); idx > 0 {
+		tmpin = tmpin[:idx-1] + "/mnt/" + strings.ToLower(string(tmpin[idx-1])) + "/" + tmpin[idx+2:]
+	}
+
+	//re := regexp.MustCompile("(['\"` ])([a-zA-Z]):\\\\")
+	//tmpin = re.ReplaceAllString(tmpin, "${1}/mnt/${2}\\/")
 
 	tmpin = strings.Replace(tmpin, "\\", "/", -1)
 
