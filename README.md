@@ -30,26 +30,12 @@ if [[ $AGENT_TEST = "" ]]; then ssh-add; fi
 ```
 
 # Currrently on testing
- - Building go-sqlite3 on windows
-
-# Testing
- - Git
-
-| Command | Works |
-|:--------------------------:|:-----:|
-| clone to windows directory | x |
-| others | o |
- 
- - Vundle on GVim on windows
-
-| Command | Works |
-|:--------------------------:|:-------:|
-| PluginInstall | o |
-| PluginSearch | x |
-
- - Go on windows
-
-| Command | Works |
-|:--------------------------:|:-------:|
-| go get | x |
-| go install | ? |
+ - [x] git commit/push
+ - [ ] git clone to windows directory and path
+ - [x] GCC build test
+ - [ ] Vundle on gvim on windows
+  - [ ] PluginInstall
+  - [ ] PluginSearch
+ - [ ] Golang
+  - [ ] git related e.g)`go get`
+  - [ ] gcc related (cgo)
