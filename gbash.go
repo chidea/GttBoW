@@ -7,10 +7,23 @@ import (
 	"os/exec"
 	//"path"
 	//"runtime"
+	"regexp"
 	"strings"
 )
 
 func initTempFiles() (inf *os.File, errf *os.File, err error) {
+	tmpin := "c:\\Temp\\_tmpin"
+
+	b, err := ioutil.ReadFile(tmpin)
+	if err != nil {
+		return
+	}
+	err = os.Remove(tmpin)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+	}
+	tmpin = string(b)
+
 	inf, err = ioutil.TempFile(".", "_stdin")
 	if err != nil {
 		return
@@ -19,6 +32,17 @@ func initTempFiles() (inf *os.File, errf *os.File, err error) {
 	if err != nil {
 		return
 	}
+
+	re := regexp.MustCompile("(['\"` ])([a-zA-Z]):\\\\")
+	tmpin = re.ReplaceAllString(tmpin, "${1}/mnt/${2}\\/")
+
+	tmpin = strings.Replace(tmpin, "\\", "/", -1)
+
+	_, err = inf.WriteString(stdinopt + tmpin + "2>" + errf.Name())
+	if err != nil {
+		return
+	}
+
 	return
 }
 func main() {
@@ -32,19 +56,27 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		return
 	}
-	// drive root replacement
-	for i, a := range os.Args[1:] {
-		if strings.Index(a, ":\\") == 1 {
-			os.Args[i+1] = "/mnt/" + strings.ToLower(string(a[0])) + "/" + a[3:]
-			os.Args[i+1] = strings.Replace(os.Args[i+1], "\\", "/", -1)
+
+	/*
+		b, err := ioutil.ReadFile(inf.Name())
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+			return
 		}
-	}
-	_, err = inf.WriteString(fmt.Sprintf(stdinopt+"%s 2>%s", strings.Join(os.Args[1:], " "), errf.Name()))
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
-		return
-	}
+		// drive root replacement
+		for i, a := range os.Args[1:] {
+			if strings.Index(a, ":\\") == 1 {
+				os.Args[i+1] = "/mnt/" + strings.ToLower(string(a[0])) + "/" + a[3:]
+				os.Args[i+1] = strings.Replace(os.Args[i+1], "\\", "/", -1)
+			}
+		}
+		_, err = inf.WriteString(fmt.Sprintf(stdinopt+"%s 2>%s", strings.Join(os.Args[1:], " "), errf.Name()))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+			return
+		}*/
 	inf.Close()
+
 	errf.Close()
 
 	execopt := []string{inf.Name()}
@@ -81,6 +113,7 @@ func main() {
 			//return
 		}
 	}
+
 	b, err := ioutil.ReadFile(errf.Name())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
@@ -97,6 +130,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		}
 	}
+
 	return
 	/*
 		in, err := cmd.StdinPipe()
