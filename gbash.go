@@ -48,7 +48,6 @@ func initTempFiles() (inf *os.File, errf *os.File, err error) {
 	tmpin = re.ReplaceAllStringFunc(tmpin, func(s string) string {
 		return fmt.Sprintf("%s/mnt/%s/", []byte{s[0]}, bytes.ToLower([]byte{s[1]}))
 	})
-	fmt.Println(tmpin)
 
 	tmpin = strings.Replace(tmpin, "\\", "/", -1)
 
