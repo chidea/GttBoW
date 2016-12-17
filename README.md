@@ -36,6 +36,9 @@ if [[ $AGENT_TEST = "" ]]; then ssh-agent > ~/.ssh/ssh-agent.sh; fi
 if [[ $AGENT_TEST = "" ]]; then ssh-add; fi
 ```
 
+### Note for piping
+To use piping, do it like `bbash 'echo 1 > _tmp'` or `bbash "echo 1 > _tmp"` which is composed of `bbash` and only one argument wrapped with quotes.
+
 ### Currrently on testing
  - [x] git
   - [x] git commit/push

@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+var testMode bool
+
 func initTempFiles() (inf *os.File, errf *os.File, err error) {
 	tmpin := "c:\\Temp\\_tmpin"
 
@@ -23,8 +25,18 @@ func initTempFiles() (inf *os.File, errf *os.File, err error) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 	}
-	tmpin = string(b)
-
+	tmpin = strings.TrimSpace(string(b))
+	testMode = strings.HasPrefix(tmpin, "-t ")
+	if testMode {
+		tmpin = strings.TrimSpace(tmpin[3:])
+		fmt.Println(tmpin)
+	}
+	if len(tmpin) > 2 {
+		if (strings.Count(tmpin, "'") == 2 && tmpin[0] == '\'' && tmpin[len(tmpin)-1] == '\'') ||
+			(strings.Count(tmpin, "\"") == 2 && tmpin[0] == '"' && tmpin[len(tmpin)-1] == '"') {
+			tmpin = strings.TrimSpace(tmpin[1:len(tmpin)])
+		}
+	}
 	inf, err = ioutil.TempFile(".", "_stdin")
 	if err != nil {
 		return
@@ -51,7 +63,7 @@ func initTempFiles() (inf *os.File, errf *os.File, err error) {
 
 	tmpin = strings.Replace(tmpin, "\\", "/", -1)
 
-	_, err = inf.WriteString(stdinopt + tmpin + "2>" + errf.Name())
+	_, err = inf.WriteString(stdinopt + tmpin + " 2>" + errf.Name())
 	if err != nil {
 		return
 	}
@@ -137,10 +149,12 @@ func main() {
 	}
 
 	// remove all temp files
-	for _, f := range []*os.File{inf, errf} {
-		err := os.Remove(f.Name())
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+	if !testMode {
+		for _, f := range []*os.File{inf, errf} {
+			err := os.Remove(f.Name())
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+			}
 		}
 	}
 
