@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -14,30 +15,38 @@ import (
 
 var testMode bool
 
-func initTempFiles() (inf *os.File, errf *os.File, err error) {
-	tmpin := "c:\\Temp\\_tmpin"
+func initTempFiles() (argf *os.File, inf *os.File, outf *os.File, errf *os.File, err error) {
+	args := "c:\\Temp\\_args"
 
-	b, err := ioutil.ReadFile(tmpin)
+	b, err := ioutil.ReadFile(args)
 	if err != nil {
 		return
 	}
-	err = os.Remove(tmpin)
+	err = os.Remove(args)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 	}
-	tmpin = strings.TrimSpace(string(b))
-	testMode = strings.HasPrefix(tmpin, "-t ")
+	args = strings.TrimSpace(string(b))
+	testMode = strings.HasPrefix(args, "-t ")
 	if testMode {
-		tmpin = strings.TrimSpace(tmpin[3:])
-		fmt.Println(tmpin)
+		args = strings.TrimSpace(args[3:])
+		fmt.Println(args)
 	}
-	if len(tmpin) > 2 {
-		if (strings.Count(tmpin, "'") == 2 && tmpin[0] == '\'' && tmpin[len(tmpin)-1] == '\'') ||
-			(strings.Count(tmpin, "\"") == 2 && tmpin[0] == '"' && tmpin[len(tmpin)-1] == '"') {
-			tmpin = strings.TrimSpace(tmpin[1:len(tmpin)])
+	if len(args) > 2 {
+		if (strings.Count(args, "'") == 2 && args[0] == '\'' && args[len(args)-1] == '\'') ||
+			(strings.Count(args, "\"") == 2 && args[0] == '"' && args[len(args)-1] == '"') {
+			args = strings.TrimSpace(args[1:len(args)])
 		}
 	}
+	argf, err = ioutil.TempFile(".", "_args")
+	if err != nil {
+		return
+	}
 	inf, err = ioutil.TempFile(".", "_stdin")
+	if err != nil {
+		return
+	}
+	outf, err = ioutil.TempFile(".", "_stdout")
 	if err != nil {
 		return
 	}
@@ -47,23 +56,23 @@ func initTempFiles() (inf *os.File, errf *os.File, err error) {
 	}
 
 	/*for {
-		if idx := strings.Index(tmpin, ":\\"); idx > 0 {
-			tmpin = tmpin[:idx-1] + "/mnt/" + strings.ToLower(string(tmpin[idx-1])) + "/" + tmpin[idx+2:]
+		if idx := strings.Index(args, ":\\"); idx > 0 {
+			args = args[:idx-1] + "/mnt/" + strings.ToLower(string(args[idx-1])) + "/" + args[idx+2:]
 		} else {
 			break
 		}
 	}*/
 
-	//tmpin = re.ReplaceAllString(tmpin, "${1}/mnt/${2}\\/")
+	//args = re.ReplaceAllString(args, "${1}/mnt/${2}\\/")
 
-	re := regexp.MustCompile("['\"` ][a-zA-Z]:\\\\")
-	tmpin = re.ReplaceAllStringFunc(tmpin, func(s string) string {
+	re := regexp.MustCompile("[='\"` ][a-zA-Z]:\\\\")
+	args = re.ReplaceAllStringFunc(args, func(s string) string {
 		return fmt.Sprintf("%s/mnt/%s/", []byte{s[0]}, bytes.ToLower([]byte{s[1]}))
 	})
 
-	tmpin = strings.Replace(tmpin, "\\", "/", -1)
+	args = strings.Replace(args, "\\", "/", -1)
 
-	_, err = inf.WriteString(stdinopt + tmpin + " 2>" + errf.Name())
+	_, err = argf.WriteString(argsopt + args + " <" + inf.Name() + " >" + outf.Name() + " 2>" + errf.Name())
 	if err != nil {
 		return
 	}
@@ -76,12 +85,11 @@ func main() {
 	//dirpath := path.Dir(currentFilePath)[3:]
 
 	// make temp files
-	inf, errf, err := initTempFiles()
+	argf, inf, outf, errf, err := initTempFiles()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		return
 	}
-
 	/*
 		b, err := ioutil.ReadFile(inf.Name())
 		if err != nil {
@@ -95,25 +103,36 @@ func main() {
 				os.Args[i+1] = strings.Replace(os.Args[i+1], "\\", "/", -1)
 			}
 		}
-		_, err = inf.WriteString(fmt.Sprintf(stdinopt+"%s 2>%s", strings.Join(os.Args[1:], " "), errf.Name()))
+		_, err = inf.WriteString(fmt.Sprintf(argsopt+"%s 2>%s", strings.Join(os.Args[1:], " "), errf.Name()))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 			return
 		}*/
+	stat, e := os.Stdin.Stat()
+	if e == nil && (stat.Mode()&os.ModeCharDevice) == 0 {
+		// stdin has some data
+		stdin := io.Reader(os.Stdin)
+		b, err := ioutil.ReadAll(stdin)
+		if err != nil {
+			fmt.Println(err)
+		}
+		_, err = inf.Write(b)
+	}
+	argf.Close()
 	inf.Close()
-
+	outf.Close()
 	errf.Close()
 
-	execopt := []string{inf.Name()}
+	execopt := []string{"gbash.vbs", argf.Name()}
 	err = exec.Command("isconemu").Run()
 	if err == nil {
 		execopt = append(execopt, "-cur_console:p")
 	}
 
-	cmd := exec.Command("bash", execopt...) //fmt.Sprintf("/mnt/c/%s/%s", dirpath, inf.Name())).Run()
-	cmd.Stdout = os.Stdout
+	cmd := exec.Command("wscript.exe", execopt...) //fmt.Sprintf("/mnt/c/%s/%s", dirpath, inf.Name())).Run()
+	/*cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
+	cmd.Stderr = os.Stderr*/
 
 	/*in, err := cmd.StdinPipe()
 	if err != nil {
@@ -138,8 +157,18 @@ func main() {
 			//return
 		}
 	}
+	// print stdout
+	b, err := ioutil.ReadFile(outf.Name())
+	if err != nil {
+		fmt.Fprintf(os.Stdout, "%s\n", err.Error())
+		return
+	}
+	if len(b) > 0 {
+		fmt.Fprintf(os.Stdout, "%s\n", string(b))
+	}
 
-	b, err := ioutil.ReadFile(errf.Name())
+	// print stderr
+	b, err = ioutil.ReadFile(errf.Name())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		return
@@ -150,7 +179,7 @@ func main() {
 
 	// remove all temp files
 	if !testMode {
-		for _, f := range []*os.File{inf, errf} {
+		for _, f := range []*os.File{argf, inf, outf, errf} {
 			err := os.Remove(f.Name())
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "%s\n", err.Error())

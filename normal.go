@@ -1,3 +1,3 @@
 package main
 
-var stdinopt string = ""
+var argsopt string = ""

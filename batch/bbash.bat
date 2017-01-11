@@ -1,4 +1,4 @@
 @echo off
 
-echo | set /p=%* > c:\Temp\_tmpin
+echo | set /p=%* > c:\Temp\_args
 gbash.exe
