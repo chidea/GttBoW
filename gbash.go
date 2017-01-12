@@ -123,7 +123,7 @@ func main() {
 	outf.Close()
 	errf.Close()
 
-	execopt := []string{"gbash.vbs", argf.Name()}
+	execopt := []string{os.Getenv("SYSTEMROOT") + "\\system32\\gbash.vbs", argf.Name()}
 	err = exec.Command("isconemu").Run()
 	if err == nil {
 		execopt = append(execopt, "-cur_console:p")
