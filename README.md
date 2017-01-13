@@ -41,13 +41,14 @@ To use piping, do it like `bbash 'echo 1 > _tmp'` or `bbash "echo 1 > _tmp"` whi
 Piping directly from windows to ubuntu is available since bd5aa169fc075a69a7a74a45959edcb2219f606a
 
 ### Currrently on testing
+ - [ ] live standard stream support for apps like `ssh`
  - [x] git
   - [x] git commit/push
   - [x] git clone to windows directory and path
  - [x] GCC build test
- - [ ] Vundle on gvim on windows
+ - [x] Vundle on gvim on windows
   - [x] PluginInstall
-  - [ ] PluginSearch
+  - [x] PluginSearch
  - [ ] Golang
-  - [ ] git related e.g)`go get`
-  - [ ] gcc related (cgo)
+  - [ ] git related get/install
+  - [ ] gcc related build (cgo)
