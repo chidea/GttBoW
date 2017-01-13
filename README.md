@@ -38,6 +38,7 @@ if [[ $AGENT_TEST = "" ]]; then ssh-add; fi
 
 ### Note for piping
 To use piping, do it like `bbash 'echo 1 > _tmp'` or `bbash "echo 1 > _tmp"` which is composed of `bbash` and only one argument wrapped with quotes.
+Piping directly from windows to ubuntu is available since bd5aa169fc075a69a7a74a45959edcb2219f606a
 
 ### Currrently on testing
  - [x] git
