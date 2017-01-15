@@ -11,12 +11,12 @@ import (
 	"bytes"
 	"regexp"
 	"strings"
+	"time"
 )
 
 var testMode bool
 
-func initTempFiles() (args, ins, outs, errs string, err error) {
-	var argf, inf, outf, errf *os.File
+func initTempFiles() (argnm, innm, outnm, errnm string, err error) {
 	tmpdir := "c:\\Temp\\"
 	arg := tmpdir + "_args"
 
@@ -29,53 +29,66 @@ func initTempFiles() (args, ins, outs, errs string, err error) {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 	}
 	arg = strings.TrimSpace(string(b))
-	testMode = strings.HasPrefix(arg, "-t ")
-	if testMode {
+	if testMode = strings.HasPrefix(arg, "-t "); testMode {
 		arg = strings.TrimSpace(arg[3:])
 		fmt.Println(arg)
 	}
 	if len(arg) > 2 {
-		if (strings.Count(arg, "'") == 2 && arg[0] == '\'' && arg[len(arg)-1] == '\'') ||
-			(strings.Count(arg, "\"") == 2 && arg[0] == '"' && arg[len(arg)-1] == '"') {
-			arg = strings.TrimSpace(arg[1:len(arg)])
+		if (arg[0] == '\'' && arg[len(arg)-1] == '\'') ||
+			(arg[0] == '"' && arg[len(arg)-1] == '"') {
+			arg = strings.TrimSpace(arg[1 : len(arg)-1])
 		}
 	}
-	argf, err = ioutil.TempFile("", "_args")
-	if err != nil {
-		return
-	}
-	inf, err = ioutil.TempFile("", "_stdin")
-	if err != nil {
-		return
-	}
-	outf, err = ioutil.TempFile("", "_stdout")
-	if err != nil {
-		return
-	}
-	errf, err = ioutil.TempFile("", "_stderr")
-	if err != nil {
-		return
+	arg = linuxPath(arg)
+	if testMode {
+		fmt.Println(arg)
 	}
 
-	args = argf.Name()
-	ins = inf.Name()
-	outs = outf.Name()
-	errs = errf.Name()
+	/* std stream files ready */
+	var argf, inf, outf, errf *os.File
+	var linnm, loutnm, lerrnm string
 
-	lins := " <" + linuxPath(ins)
+	if argf, err = ioutil.TempFile("", "_args"); err != nil {
+		return
+	} else {
+		argnm = argf.Name()
+	}
 	if i := strings.Index(arg, "<"); i > 0 && arg[i-1] != '\\' {
-		lins = ""
-	}
-	louts := " >" + linuxPath(outs)
-	if i := strings.Index(arg, ">"); i > 0 && arg[i-1] != '\\' {
-		louts = ""
-	}
-	lerrs := " 2>" + linuxPath(errs)
-	if strings.Contains(arg, "2>") {
-		lerrs = ""
+	} else {
+		if inf, err = ioutil.TempFile("", "_stdin"); err != nil {
+			return
+		}
+		innm = inf.Name()
+		linnm = " <" + linuxPath(innm)
+		if j := strings.Index(arg, ";"); j >= 0 {
+			// pipe stdin into first command
+			arg = arg[:j] + linnm + arg[j:]
+		} else {
+			arg += linnm
+		}
 	}
 
-	_, err = argf.WriteString(argsopt + linuxPath(arg) + lins + louts + lerrs)
+	if i := strings.Index(arg, ">"); i > 0 && arg[i-1] != '\\' {
+	} else {
+		if outf, err = ioutil.TempFile("", "_stdout"); err != nil {
+			return
+		}
+		outnm = outf.Name()
+		loutnm = " >>" + linuxPath(outnm)
+		arg = strings.Replace(arg, ";", loutnm+";", -1)
+	}
+
+	if strings.Contains(arg, "2>") {
+	} else {
+		if errf, err = ioutil.TempFile("", "_stderr"); err != nil {
+			return
+		}
+		errnm = errf.Name()
+		lerrnm = " 2>>" + linuxPath(errnm)
+		arg = strings.Replace(arg, ";", lerrnm+";", -1)
+	}
+
+	_, err = argf.WriteString(argsopt + arg + loutnm + lerrnm)
 	if err != nil {
 		return
 	}
@@ -112,13 +125,30 @@ func linuxPath(path string) (rst string) {
 	rst = strings.Replace(path, "\\", "/", -1)
 	return
 }
+func cp(c *bool, ch chan bool, w, r *os.File) {
+	for *c {
+		//fmt.Printf("%s", string(b))
+		//ioutil.ReadAll(r)
+		c, _ := io.Copy(w, r)
+		//b, _ := ioutil.ReadAll(r)
+		//if len(b) == 0 {
+		if c == 0 {
+			time.Sleep(1 * time.Millisecond)
+		} // else {
+		//fmt.Fprintf(w, "%s", string(b))
+		//}
+	}
+	//w.Close()
+	r.Close()
+	ch <- true
+}
 func main() {
 	// get current path
 	//_, currentFilePath, _, _ := runtime.Caller(0)
 	//dirpath := path.Dir(currentFilePath)[3:]
 
 	// make temp files
-	argf, inf, outf, errf, err := initTempFiles()
+	argnm, innm, outnm, errnm, err := initTempFiles()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		return
@@ -142,7 +172,7 @@ func main() {
 			return
 		}*/
 
-	execopt := []string{os.Getenv("SYSTEMROOT") + "\\system32\\gbash.vbs", linuxPath(argf)}
+	execopt := []string{os.Getenv("SYSTEMROOT") + "\\system32\\gbash.vbs", linuxPath(argnm)}
 	err = exec.Command("isconemu").Run()
 	if err == nil {
 		execopt = append(execopt, "-cur_console:p")
@@ -163,21 +193,32 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		return
 	}*/
+	c := true
+	//chi := make(chan bool)
+	cho := make(chan bool)
+	che := make(chan bool)
+	//inf, _ := os.OpenFile(outnm, os.O_WRONLY, 0666)
+	//go cp(&c, chi, inf, os.Stdin)
+	outf, _ := os.OpenFile(outnm, os.O_RDONLY, 0666)
+	go cp(&c, cho, os.Stdout, outf)
+	errf, _ := os.OpenFile(errnm, os.O_RDONLY, 0666)
+	go cp(&c, che, os.Stderr, errf)
 
 	err = cmd.Start()
 	if err != nil {
-		fmt.Println(err)
-		//return
+		fmt.Fprintln(os.Stderr, "%s\n", err)
 	} else {
 		err = cmd.Wait()
 		if err != nil {
-			fmt.Println(err)
-			//fmt.Fprintf(os.Stderr, "%s\n", err.Error())
-			//return
+			fmt.Fprintln(os.Stderr, "%s\n", err)
 		}
 	}
+	c = false
+	//<-chi
+	<-cho
+	<-che
 	// print stdout
-	b, err := ioutil.ReadFile(outf)
+	/*b, err := ioutil.ReadFile(outnm)
 	if err != nil {
 		fmt.Fprintf(os.Stdout, "%s\n", err.Error())
 		return
@@ -187,22 +228,33 @@ func main() {
 	}
 
 	// print stderr
-	b, err = ioutil.ReadFile(errf)
+	b, err = ioutil.ReadFile(errnm)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		return
 	}
 	if len(b) > 0 {
 		fmt.Fprintf(os.Stderr, "%s\n", string(b))
-	}
+	}*/
 
 	// remove all temp files
-	if !testMode {
-		for _, f := range []string{argf, inf, outf, errf} {
-			err := os.Remove(f)
+	if testMode {
+		for _, f := range []string{argnm, innm, outnm, errnm} {
+			fmt.Println(f)
+			b, err := ioutil.ReadFile(f)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+				fmt.Fprintf(os.Stdout, "%s\n", err.Error())
+				return
 			}
+			if len(b) > 0 {
+				fmt.Fprintf(os.Stdout, "%s\n", string(b))
+			}
+		}
+	}
+	for _, f := range []string{argnm, innm, outnm, errnm} {
+		err := os.Remove(f)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		}
 	}
 
