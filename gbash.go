@@ -252,6 +252,9 @@ func main() {
 		}
 	}
 	for _, f := range []string{argnm, innm, outnm, errnm} {
+		if f == "" {
+			continue
+		}
 		err := os.Remove(f)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err.Error())
