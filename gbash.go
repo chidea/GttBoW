@@ -38,11 +38,17 @@ func initTempFiles() (argnm, innm, outnm, errnm string, err error) {
 			(arg[0] == '"' && arg[len(arg)-1] == '"') {
 			arg = strings.TrimSpace(arg[1 : len(arg)-1])
 		}
+		/*if arg[0] == ' ' { // clear starting blank... unnecessary
+			re := regexp.MustCompile("[^ ;><&|]+")
+			arg = arg[re.FindStringIndex(arg)+1:]
+		}*/
 	}
 	arg = linuxPath(arg)
 	if testMode {
 		fmt.Println(arg)
 	}
+	//re := regexp.MustCompile("[^ ;><&|]+")
+	//binName := re.FindString(arg)
 
 	/* std stream files ready */
 	var argf, inf, outf, errf *os.File
@@ -53,42 +59,95 @@ func initTempFiles() (argnm, innm, outnm, errnm string, err error) {
 	} else {
 		argnm = argf.Name()
 	}
-	if i := strings.Index(arg, "<"); i > 0 && arg[i-1] != '\\' {
-	} else {
+
+	var hasInPipe, hasOutPipe, hasErrPipe bool
+	var pipePoss []int
+	// quote and pipe parsing
+	lastQuote := ' '
+	nonQuoteBuf := ""
+	for i, c := range arg[:len(arg)-1] {
+		if strings.ContainsAny(string(c), "'\"`") {
+			p := arg[i-1]
+			n := arg[i+1]
+			if c == '`' {
+				// TODO: recursive parse needed here
+			}
+			if p != '\\' && ((lastQuote == ' ' && p == ' ') || (lastQuote != ' ' && strings.ContainsAny(string(n), " ;><&|"))) {
+				if lastQuote != ' ' && c == lastQuote {
+					lastQuote = ' '
+				} else {
+					lastQuote = c
+					fmt.Println(nonQuoteBuf)
+					nonQuoteBuf = ""
+				}
+			}
+		}
+		if lastQuote == ' ' {
+			if strings.ContainsAny(string(c), "<>;") {
+				p := arg[i-1]
+				if p != '\\' {
+					if c == '<' {
+						hasInPipe = true
+					} else if c == '>' {
+						if p == '2' {
+							hasErrPipe = true
+						} else {
+							hasOutPipe = true
+						}
+					} else { // ';'
+						pipePoss = append(pipePoss, i)
+					}
+				}
+			} else {
+				nonQuoteBuf += string(c)
+			}
+		}
+	}
+	if !hasInPipe {
+		//if i := strings.Index(arg, "<"); i > 0 && arg[i-1] != '\\' {
+		//} else {
 		if inf, err = ioutil.TempFile("", "_stdin"); err != nil {
 			return
 		}
 		innm = inf.Name()
-		linnm = " <" + linuxPath(innm)
-		if j := strings.Index(arg, ";"); j >= 0 {
+		linnm = "<" + linuxPath(innm) + " "
+		/*if j := strings.Index(arg, ";"); j >= 0 {
 			// pipe stdin into first command
 			arg = arg[:j] + linnm + arg[j:]
 		} else {
 			arg += linnm
-		}
-	}
+		}*/
 
-	if i := strings.Index(arg, ">"); i > 0 && arg[i-1] != '\\' {
-	} else {
+	}
+	if !hasOutPipe {
+		//if i := strings.Index(arg, ">"); i > 0 && arg[i-1] != '\\' {
+		//} else {
 		if outf, err = ioutil.TempFile("", "_stdout"); err != nil {
 			return
 		}
 		outnm = outf.Name()
 		loutnm = " >>" + linuxPath(outnm)
-		arg = strings.Replace(arg, ";", loutnm+";", -1)
+		//arg = strings.Replace(arg, ";", loutnm+";", -1)
 	}
-
-	if strings.Contains(arg, "2>") {
-	} else {
+	if !hasErrPipe {
+		//if strings.Contains(arg, "2>") {
+		//} else {
 		if errf, err = ioutil.TempFile("", "_stderr"); err != nil {
 			return
 		}
 		errnm = errf.Name()
 		lerrnm = " 2>>" + linuxPath(errnm)
-		arg = strings.Replace(arg, ";", lerrnm+";", -1)
+		//arg = strings.Replace(arg, ";", lerrnm+";", -1)
 	}
+	argn := linnm
+	lasti := 0
+	for _, i := range pipePoss {
+		argn += arg[lasti:i] + loutnm + lerrnm
+		lasti = i
+	}
+	argn += arg[lasti:] + loutnm + lerrnm
 
-	_, err = argf.WriteString(argsopt + arg + loutnm + lerrnm)
+	_, err = argf.WriteString(argsopt + argn)
 	if err != nil {
 		return
 	}
@@ -240,6 +299,9 @@ func main() {
 	// remove all temp files
 	if testMode {
 		for _, f := range []string{argnm, innm, outnm, errnm} {
+			if f == "" {
+				continue
+			}
 			fmt.Println(f)
 			b, err := ioutil.ReadFile(f)
 			if err != nil {
