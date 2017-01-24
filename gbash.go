@@ -47,9 +47,11 @@ func initTempFiles() (argnm, innm, outnm, errnm string, err error) {
 	if testMode {
 		fmt.Println(arg)
 	}
-	//re := regexp.MustCompile("[^ ;><&|]+")
-	//binName := re.FindString(arg)
 
+	binName := regexp.MustCompile("[^ ;><&|]+").FindString(arg)
+	if binName == "gcc" {
+		arg = "CFLAGS='" + os.Getenv("CFLAGS") + "'; LDFLAGS='" + os.Getenv("LDFLAGS") + "';" + arg
+	}
 	/* std stream files ready */
 	var argf, inf, outf, errf *os.File
 	var linnm, loutnm, lerrnm string
@@ -230,7 +232,6 @@ func main() {
 			fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 			return
 		}*/
-
 	execopt := []string{os.Getenv("SYSTEMROOT") + "\\system32\\gbash.vbs", linuxPath(argnm)}
 	err = exec.Command("isconemu").Run()
 	if err == nil {
