@@ -19,7 +19,7 @@ func main() {
 	if debug {
 		debug = true
 		args = args[1:]
-		log.Println("argument before edit:", args)
+		log.Println(len(args), "arguments before edit:", args)
 	}
 	err := exec.Command("isconemu").Run()
 	if err == nil {
@@ -28,7 +28,7 @@ func main() {
 	var cmd *exec.Cmd
 	if len(args) > 0 {
 		for i := 0; i < len(args); i++ {
-			args[i] = linuxPath(args[i])
+			args[i] = strings.Replace(linuxPath(args[i]), " ", "\\ ", -1)
 		}
 		args = []string{"-c", strings.Join(args, " ")}
 		args = append(preargs, args...)
@@ -37,7 +37,7 @@ func main() {
 		cmd = exec.Command("bash.exe")
 	}
 	if debug {
-		log.Println("arguments after edit:", args)
+		log.Println(len(args), "arguments after edit:", args)
 	}
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

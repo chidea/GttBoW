@@ -1,25 +1,32 @@
 @echo off
 
-:START
-set /p y="Are you planning to use normal mode instead of ssh-agent? [y/n] : "
+REM :START
+REM set /p y="Are you planning to use normal mode instead of ssh-agent? [y/n] : "
+REM 
+REM if "%y%"=="y" (
+REM   set opt=normal.go
+REM ) else (
+REM   if "%y%"=="n" (
+REM     set opt=ssh-agent.go
+REM   ) else (
+REM     GOTO START
+REM   )
+REM )
+REM 
+REM go build gbash.go %opt%
 
-if "%y%"=="y" (
-  set opt=normal.go
-) else (
-  if "%y%"=="n" (
-    set opt=ssh-agent.go
-  ) else (
-    GOTO START
-  )
-)
+go build gbash.go
 
-go build gbash.go %opt%
-REM You can activate ssh-agent mode with removing REM of line bellow and remove the line above.
-REM go build gbash.go ssh-agent.go
+REM set bbash=%windir%\system32\bbash.bat 
+REM if exist %bbash% (
+REM   DEL %bbash%
+REM )
 
 move gbash.exe %windir%\system32\
-copy gbash.vbs %windir%\system32\
+REM copy gbash.vbs %windir%\system32\
 copy batch\*.bat %windir%\system32\
-bbash sudo apt install git curl wget gcc-mingw-w64-x86-64 -y
-
+set /p y="Shall I install basic tools on bash for you? [y/n] : "
+if "%y%"=="y" (
+  bbash sudo apt install git curl wget gcc-mingw-w64-x86-64 -y
+)
 echo GttBoW Installation succeed.
