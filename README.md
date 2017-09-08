@@ -19,6 +19,8 @@ So you do use commands directly with any brackets you need to use as if it's an 
 ### Manual Installation
  - Get `gbash.exe` by manual building with `go build gbash.go normal.go`.
   - If you are using ssh-agent, consider using  `go build sbash.go ssh-agent.go`. This lets you share ssh passwords from pre-opened background bash terminal. Check ssh-agent section for more information.
+  - GttBow automatically recognize running instance of ssh-agent and try to attach to it by running `~/.ssh/ssh-agent.sh`
+  - Check note for ssh-agent below to be noticed how to set it right.
  - Move `gbash.exe` into `%WINDIR%\System32\`(cmd) or `$env:WINDIR\System32\`(powershell) or just under any directory which PATH environment variable directs.
  - Do the same move with `batch/git.bat` and `batch/bbatch.bat` file.
  - Now `git [command]` will work as native windows command.
@@ -28,13 +30,11 @@ So you do use commands directly with any brackets you need to use as if it's an 
  - To use `gcc.bat`, do `sudo apt install gcc-mingw-w64-x86-64` in ubuntu first.
 
 ### Note for ssh-agent
-This is the content that I place in `~/.bashrc` and `~/.zshrc`.
+This is the content to be placed in `~/.bashrc` or `~/.zshrc`
 ```
-AGENT_TEST=$(pgrep ssh-agent)
-if [[ $AGENT_TEST = "" ]]; then ssh-agent > ~/.ssh/ssh-agent.sh; fi
-. ~/.ssh/ssh-agent.sh
-if [[ $AGENT_TEST = "" ]]; then ssh-add; fi
+if [[ $(pgrep ssh-agent) = "" ]]; then eval `ssh-agent > ~/.ssh/ssh-agent.sh`; source ~/.ssh/ssh-agent.sh; for KEY in `ls ~/.ssh/*.pub | sed s/\.pub//`; do ssh-add $KEY; done; else source ~/.ssh/ssh-agent.sh; fi
 ```
+Or you can save it as `~/.init-ssh-agent` and place `. ~/.init-ssh-agent` instead and do `chmod +x ~/.init-ssh-agent`.
 
 ### Note for piping
 To use piping, do it like `bbash 'echo 1 > _tmp'` or `bbash "echo 1 > _tmp"` which is composed of `bbash` and only one argument wrapped with quotes.

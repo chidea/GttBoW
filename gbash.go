@@ -1,7 +1,7 @@
 package main
 
 import (
-	//"bytes"
+	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -13,25 +13,32 @@ import (
 var debug bool
 
 func main() {
-	preargs := []string{}
-	args := os.Args[1:]
-	debug = len(args) > 0 && (args[0] == "-d" || args[0] == "--debug")
+	bashargs := []string{}
+	oriargs := os.Args[1:]
+	var args []string
+	var preargs string
+	debug = len(oriargs) > 0 && (oriargs[0] == "-d" || oriargs[0] == "--debug")
 	if debug {
 		debug = true
-		args = args[1:]
-		log.Println(len(args), "arguments before edit:", args)
+		oriargs = oriargs[1:]
+		log.Println(len(oriargs), "arguments before edit:", oriargs)
 	}
 	err := exec.Command("isconemu").Run()
 	if err == nil {
-		preargs = append(preargs, "-cur_console:p")
+		bashargs = append(bashargs, "-cur_console:p")
+	}
+	b, err := exec.Command("tasklist", "/fi", "imagename eq ssh-agent").Output()
+	if err == nil {
+		if !bytes.Equal(b[:4], []byte("INFO")) {
+			preargs = ". ~/.ssh/ssh-agent.sh;"
+		}
 	}
 	var cmd *exec.Cmd
-	if len(args) > 0 {
-		for i := 0; i < len(args); i++ {
-			args[i] = strings.Replace(linuxPath(args[i]), " ", "\\ ", -1)
+	if len(oriargs) > 0 {
+		for i := 0; i < len(oriargs); i++ {
+			oriargs[i] = strings.Replace(linuxPath(oriargs[i]), " ", "\\ ", -1)
 		}
-		args = []string{"-c", strings.Join(args, " ")}
-		args = append(preargs, args...)
+		args = append(bashargs, []string{"-c", preargs + strings.Join(oriargs, " ")}...)
 		cmd = exec.Command("bash.exe", args...)
 	} else {
 		cmd = exec.Command("bash.exe")
