@@ -61,3 +61,5 @@ Piping directly from windows to ubuntu is available since bd5aa169fc075a69a7a74a
  - [x] Golang
   - [x] git related get/install
   - [ ] gcc related build (cgo)
+ - [ ] Xming
+  - [ ] ssh.exe replacement for remote X11 forwarding
