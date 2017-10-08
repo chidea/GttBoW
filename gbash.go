@@ -27,10 +27,10 @@ func main() {
 	if err == nil {
 		bashargs = append(bashargs, "-cur_console:p")
 	}
-	b, err := exec.Command("tasklist", "/fi", "imagename eq ssh-agent").Output()
-	if err == nil {
+	b, err := exec.Command("bash", "-c", "pgrep ssh-agent").Output()
+	if err == nil && len(b) > 1 {
 		if !bytes.Equal(b[:4], []byte("INFO")) {
-			preargs = ". ~/.ssh/ssh-agent.sh;"
+			preargs = ". ~/.ssh/ssh-agent.sh > /dev/null;"
 		}
 	}
 	var cmd *exec.Cmd
@@ -44,7 +44,7 @@ func main() {
 		cmd = exec.Command("bash.exe")
 	}
 	if debug {
-		log.Println(len(args), "arguments after edit:", args)
+		log.Println(len(args), "arguments after edit[", len(args), "]:", args)
 	}
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
