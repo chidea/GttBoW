@@ -40,4 +40,11 @@ set /p y="Shall I install basic tools like git and mingw on bash for you? [y/n] 
 IF "%y%"=="y" (
   gbash sudo apt install git curl wget gcc-mingw-w64-x86-64 -y
 )
+
+set /p y="Do you want ssh-agent installed on bash? [y/n] : "
+IF "%y%"=="y" (
+  powershell .\install-ssh-agent.ps1
+  echo ssh-agent script installed
+)
+
 echo GttBoW Installation succeed.
