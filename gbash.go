@@ -1,11 +1,12 @@
 package main
 
 import (
-	"bytes"
+	//"bytes"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
 	"regexp"
 	"strings"
 )
@@ -13,10 +14,11 @@ import (
 var debug bool
 
 func main() {
+	exitsig := make(chan os.Signal, 1)
+	signal.Notify(exitsig, os.Interrupt)
 	bashargs := []string{}
 	oriargs := os.Args[1:]
 	var args []string
-	var preargs string
 	debug = len(oriargs) > 0 && (oriargs[0] == "-d" || oriargs[0] == "--debug")
 	if debug {
 		debug = true
@@ -27,18 +29,12 @@ func main() {
 	if err == nil {
 		bashargs = append(bashargs, "-cur_console:p")
 	}
-	b, err := exec.Command("bash", "-c", "pgrep ssh-agent").Output()
-	if err == nil && len(b) > 1 {
-		if !bytes.Equal(b[:4], []byte("INFO")) {
-			preargs = ". ~/.ssh/ssh-agent.sh > /dev/null;"
-		}
-	}
 	var cmd *exec.Cmd
 	if len(oriargs) > 0 {
 		for i := 0; i < len(oriargs); i++ {
 			oriargs[i] = strings.Replace(linuxPath(oriargs[i]), " ", "\\ ", -1)
 		}
-		args = append(bashargs, []string{"-c", preargs + strings.Join(oriargs, " ")}...)
+		args = append(bashargs, []string{"-ic", strings.Join(oriargs, " ")}...)
 		cmd = exec.Command("bash.exe", args...)
 	} else {
 		cmd = exec.Command("bash.exe")
@@ -50,6 +46,10 @@ func main() {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Start()
+	go func() {
+		<-exitsig
+		cmd.Process.Kill()
+	}()
 	cmd.Wait()
 }
 
